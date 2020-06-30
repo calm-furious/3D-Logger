@@ -44,7 +44,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 intent = new Intent(MainActivity.this, LogService.class);
+
+
                 stopService(intent);
+
                 startService.setEnabled(true);
                 stopService.setEnabled(false);
             }
@@ -53,7 +56,17 @@ public class MainActivity extends AppCompatActivity {
             startService.setEnabled(false);
             stopService.setEnabled(true);
             Log.d("cjc","service working");
+        }else {
+            Log.d("cjc","service not working");
+
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        intent = new Intent(MainActivity.this, LogService.class);
+        stopService(intent);
+        super.onDestroy();
     }
 
     private boolean isWorked(String className) {
@@ -62,9 +75,9 @@ public class MainActivity extends AppCompatActivity {
                         Context.ACTIVITY_SERVICE);
         ArrayList<ActivityManager.RunningServiceInfo> runningService = (ArrayList<ActivityManager.RunningServiceInfo>) myManager
                 .getRunningServices(30);
-        //Log.d("cjc",String.valueOf(runningService.size()));
+        Log.d("cjc",String.valueOf(runningService.size()));
         for (int i = 0; i < runningService.size(); i++) {
-            //
+            Log.d("cjc",runningService.get(i).service.getClassName());
             if (runningService.get(i).service.getClassName().toString()
                     .equals(className)) {
                 return true;

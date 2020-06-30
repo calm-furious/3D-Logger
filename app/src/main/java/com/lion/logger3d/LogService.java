@@ -151,10 +151,10 @@ public class LogService extends Service implements SensorEventListener {
                 .setContentText("in foreground")
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setPriority(Notification.PRIORITY_MIN)
+                .setPriority(Notification.PRIORITY_MAX)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
-        startForeground(101, notification);
+        startForeground(1, notification);
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -231,15 +231,15 @@ public class LogService extends Service implements SensorEventListener {
                     doWrite = true;
                     break;
                 }
-                case Intent.ACTION_USER_PRESENT:{
-                    write2file("user present\n");
-                    doWrite = true;
-                    break;
-                }
-                case Intent.ACTION_USER_UNLOCKED:{
-                    write2file("USER\n");
-                    break;
-                }
+//                case Intent.ACTION_USER_PRESENT:{
+//                    write2file("user present\n");
+//                    doWrite = true;
+//                    break;
+//                }
+//                case Intent.ACTION_USER_UNLOCKED:{
+//                    write2file("USER\n");
+//                    break;
+//                }
             }
 //            if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)){
 //                write2file("screen off\n");
