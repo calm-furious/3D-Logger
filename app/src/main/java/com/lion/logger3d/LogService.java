@@ -18,6 +18,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
@@ -41,7 +42,9 @@ import static android.support.v4.app.NotificationCompat.PRIORITY_MIN;
 public class LogService extends Service implements SensorEventListener {
     public LogService() {
     }
+    private final IBinder binder = new MyBinder();
 
+    private boolean screen_flag = true;
     private IntentFilter mIntentFilter;
     private ScreenOffReceiver mReceiver;
     private SensorManager sm;
@@ -49,10 +52,33 @@ public class LogService extends Service implements SensorEventListener {
     private long totalTime;
     private int lines;
     private Timer mTimer;
+    private boolean log_flag = false;
+    private String filepath;
+
+    public void changeLogFlag(boolean value){
+        log_flag = value;
+    }
+
+    public void startRecord() {
+        doWrite = true;
+        filepath = "/sdcard/acc"+String.valueOf(System.currentTimeMillis())+".txt";
+    }
+
+    public void stopRecord() {
+        doWrite = false;
+    }
+
+    public class MyBinder extends Binder {
+        LogService getService(){
+            //调用办证的方法
+           return LogService.this;
+        }
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return binder;
     }
 
     @Override
@@ -71,8 +97,8 @@ public class LogService extends Service implements SensorEventListener {
         registerReceiver(mReceiver,mIntentFilter);
 
         startForeground();
-        write2file("START\n");
-        doWrite = true;
+        //write2file("START\n");
+//        doWrite = true;
         sm = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         sm.registerListener(this,
                 sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
@@ -84,13 +110,14 @@ public class LogService extends Service implements SensorEventListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mTimer = new Timer();
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                totalTime+=1;
-            }
-        }, 0, 1/* 表示1000毫秒之後，每隔1000毫秒執行一次 */);
+//        mTimer = new Timer();
+//        mTimer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                totalTime+=1;
+//            }
+//        }, 0, 1/* 表示1000毫秒之後，每隔1000毫秒執行一次 */);
+
 
         return START_STICKY;
     }
@@ -101,20 +128,20 @@ public class LogService extends Service implements SensorEventListener {
             unregisterReceiver(mReceiver);
         }
         stopForeground(true);
-        write2file("STOP\n");
+        //write2file("STOP\n");
         doWrite = false;
-        write2file(String.valueOf(lines)+"lines in"+String.valueOf(totalTime)+"milliseconds");
+        //write2file(String.valueOf(lines)+"lines in"+String.valueOf(totalTime)+"milliseconds");
         super.onDestroy();
     }
 
     private void write2file(String a) {
         try {
-            File file = new File("/sdcard/acc.txt");//write the result into/sdcard/acc.txt
+            File file = new File(filepath);//write the result into/sdcard/acc.txt
             if (!file.exists()) {
                 file.createNewFile();
             }
             // Open a random access file stream for reading and writing
-            RandomAccessFile randomFile = new RandomAccessFile("/sdcard/acc.txt", "rw");
+            RandomAccessFile randomFile = new RandomAccessFile(filepath, "rw");
             // The length of the file (the number of bytes)
             long fileLength = randomFile.length();
             // Move the file pointer to the end of the file
@@ -178,37 +205,41 @@ public class LogService extends Service implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         String message = new String();
         if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            float X = event.values[0];
-            float Y = event.values[1];
-            float Z = event.values[2];
-//            //Low-Pass Filter
-//            lowX = X * FILTERING_VALAUE + lowX * (1.0f -
-//                    FILTERING_VALAUE);
-//            lowY = Y * FILTERING_VALAUE + lowY * (1.0f -
-//                    FILTERING_VALAUE);
-//            lowZ = Z * FILTERING_VALAUE + lowZ * (1.0f -
-//                    FILTERING_VALAUE);
-//            //High-pass filter
-//            float highX = X - lowX;
-//            float highY = Y - lowY;
-//            float highZ = Z - lowZ;
-//            double highA = Math.sqrt(highX * highX + highY * highY + highZ
-//                    * highZ);
-            DecimalFormat df = new DecimalFormat("#,##0.000");
-//            message = df.format(highX) + " ";
-//            message += df.format(highY) + " ";
-//            message += df.format(highZ) + " ";
-//            message += df.format(highA) + "\n";
-            message = String.valueOf(totalTime) + " ";
-            message += df.format(X) + " ";
-            message += df.format(Y) + " ";
-            message += df.format(Z) + " ";
-            double A = Math.sqrt(X * X + Y * Y + Z * Z);
-            message += df.format(A) + "\n";
-            if(doWrite){
+            if(doWrite && (screen_flag || log_flag)){
+                float X = event.values[0];
+                float Y = event.values[1];
+                float Z = event.values[2];
+    //            //Low-Pass Filter
+    //            lowX = X * FILTERING_VALAUE + lowX * (1.0f -
+    //                    FILTERING_VALAUE);
+    //            lowY = Y * FILTERING_VALAUE + lowY * (1.0f -
+    //                    FILTERING_VALAUE);
+    //            lowZ = Z * FILTERING_VALAUE + lowZ * (1.0f -
+    //                    FILTERING_VALAUE);
+    //            //High-pass filter
+    //            float highX = X - lowX;
+    //            float highY = Y - lowY;
+    //            float highZ = Z - lowZ;
+    //            double highA = Math.sqrt(highX * highX + highY * highY + highZ
+    //                    * highZ);
+                DecimalFormat df = new DecimalFormat("#,##0.000");
+    //            message = df.format(highX) + " ";
+    //            message += df.format(highY) + " ";
+    //            message += df.format(highZ) + " ";
+    //            message += df.format(highA) + "\n";
+                message = String.valueOf(System.currentTimeMillis()) + " ";
+                int val = screen_flag?1:0;
+                message += String.valueOf(val)+ " ";
+                message += df.format(X) + " ";
+                message += df.format(Y) + " ";
+                message += df.format(Z) + " ";
+    //            double A = Math.sqrt(X * X + Y * Y + Z * Z);
+                message += "\n";
+
                 write2file(message);
+                lines+=1;
             }
-            lines+=1;
+
 
         }
     }
@@ -222,13 +253,13 @@ public class LogService extends Service implements SensorEventListener {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()){
                 case Intent.ACTION_SCREEN_OFF:{
-                    write2file("screen off\n");
-                    doWrite = false;
+                    //write2file("screen off\n");
+                    screen_flag = false;
                     break;
                 }
                 case Intent.ACTION_SCREEN_ON:{
-                    write2file("screen on\n");
-                    doWrite = true;
+                    //write2file("screen on\n");
+                    screen_flag = true;
                     break;
                 }
 //                case Intent.ACTION_USER_PRESENT:{
