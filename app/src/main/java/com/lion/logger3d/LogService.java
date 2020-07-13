@@ -70,7 +70,6 @@ public class LogService extends Service implements SensorEventListener {
 
     public class MyBinder extends Binder {
         LogService getService(){
-            //调用办证的方法
            return LogService.this;
         }
     }
@@ -258,7 +257,7 @@ public class LogService extends Service implements SensorEventListener {
                     break;
                 }
                 case Intent.ACTION_SCREEN_ON:{
-                    //write2file("screen on\n");
+                    write2file("0000000000000 1 0.000 0.000 0.000\n");
                     screen_flag = true;
                     break;
                 }
